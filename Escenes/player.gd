@@ -14,7 +14,6 @@ var estado_actual: Estados
 var direccion_horizontal: Vector2
 
 # Variable para poder tomar items ------------------------------------------------------------------
-@onready var item: Node2D = $"../Item"
 @onready var test_level: Node = $".."
 var item_en_mano : Node = null # Null significa que no se tiene nada en la mano 
 var distancia_umbral = 25.0
@@ -23,28 +22,16 @@ var distancia_umbral = 25.0
 var direccion_mira: Vector2 = Vector2.RIGHT
 #endregion 
 
+func _ready():
+	tomar_item() 
+
 func _process(delta: float) -> void:
-	var input_dir = Vector2.ZERO
-	# input_dir da valores dependiendo de la tecla presionada, siendo right 1, y left -1
-	input_dir.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
-	# Condicional para signar valores a la variable de mira (saber a donde mira el jugador)
-	if input_dir != Vector2.ZERO:
-		direccion_mira = input_dir.normalized()
+	if Input.is_action_just_pressed("take_item"):
+		if item_en_mano:
+			soltar_item()
+		else:
+			tomar_item()
 	
-	# Encontrar el item más cercano
-	var item_cercano : Node2D = null # No hay items cercanos
-	var distancia_min = distancia_umbral
-	for i in get_tree().get_nodes_in_group("items"):
-		var dist = global_position.distance_to(i.global_position) 
-		if dist < distancia_min: # Si la distancia lo permite, tomaremos el item
-			distancia_min = distancia_umbral
-			item_cercano = i
-	
-	if item_cercano:
-		if Input.is_action_just_pressed("take_item") and item_en_mano == null:
-			tomar_item(item_cercano)
-		elif Input.is_action_just_pressed("take_item") and item_en_mano == item_cercano:
-			soltar_item(item_cercano)
 		
 func _physics_process(delta: float) -> void:
 	
@@ -100,17 +87,40 @@ func actualizar_estado():
 func cambiar_estado(nuevo_estado : Estados):
 	estado_actual = nuevo_estado
 	
-func tomar_item(item: Node2D):
-	item_en_mano = item
-	item.get_parent().remove_child(item) # Hace que el item deje de estar en el "suelo" y se una a ti
-	$HandPosition.add_child(item)
-	item.position = Vector2.ZERO
+func tomar_item():
+	var mas_cercano: Node = null
+	var menor_distancia: float = INF
 	
-func soltar_item(item: Node2D):
+	# Para buscar el item más cercano al jugador
+	for item in get_tree().get_nodes_in_group("items"):
+		var distancia = global_position.distance_to(item.global_position)
+		if distancia < distancia_umbral and distancia < menor_distancia:
+			menor_distancia = distancia
+			mas_cercano = item
+			
+	if mas_cercano:
+		item_en_mano = mas_cercano
+		item_en_mano.get_parent().remove_child(item_en_mano)
+		add_child(item_en_mano) # Se pone como nodo hijo del jugador
+		item_en_mano.position = Vector2(0, -20)
+	
+func soltar_item():
 	if item_en_mano:
-		var distancia_objeto = direccion_mira * 16 # Distancia de objeto delante del jugador
-		item.get_parent().remove_child(item)
-		test_level.add_child(item)
-		item_en_mano.global_position = global_position + distancia_objeto
-		# Aquí el item vuelve a estar tirado
+		remove_child(item_en_mano)
+		get_parent().add_child(item_en_mano)
+
+		# Dirección del frente
+		var dir = 0
+		var lastLook = 0
+		if Input.is_action_pressed("move_right"):
+			dir = 1
+			lastLook = 1
+		elif Input.is_action_pressed("move_left"):
+			dir = -1
+			lastLook = -1
+ # por defecto mirar derecha
+
+		var frente = Vector2(dir * 15, 0)
+		item_en_mano.global_position = global_position + frente
+
 		item_en_mano = null

@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cfkuo5f4ag0ob"]
+
+[ext_resource type="Texture2D" uid="uid://deymd18jo6nn5" path="res://Recursos/inversa.png" id="1_div73"]
+
+[node name="Inversa" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_div73")
+
+[node name="Area2D" type="Area2D" parent="."]

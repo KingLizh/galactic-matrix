@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1kj7dovwt7gf"]
+
+[ext_resource type="Texture2D" uid="uid://brfkyhlhtsbi0" path="res://Recursos/inversa.png" id="1_el3o4"]
+
+[node name="Item2" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_el3o4")
+
+[node name="Area2D" type="Area2D" parent="."]
